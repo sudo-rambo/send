@@ -1,0 +1,65 @@
+#!/bin/sh
+
+# Battery module for someblocks / dwmblocks
+# Font Awesome 4.7 compatible
+
+case $BLOCK_BUTTON in
+    3)
+        notify-send "🔋 Battery module" \
+"  Full
+  Charging
+  Discharging
+  Not charging
+  Battery very low
+
+Scroll: adjust brightness"
+        ;;
+    4) xbacklight -inc 10 ;;
+    5) xbacklight -dec 10 ;;
+    6) "$TERMINAL" -e "$EDITOR" "$0" ;;
+esac
+
+output=""
+
+for battery in /sys/class/power_supply/BAT*; do
+    [ -d "$battery" ] || continue
+
+    # Space between batteries
+    [ -n "$output" ] && output="$output "
+
+    status=$(cat "$battery/status" 2>/dev/null)
+    capacity=$(cat "$battery/capacity" 2>/dev/null)
+    name=$(basename "$battery")
+
+    case "$status" in
+        "Full")
+            icon=""
+            ;;
+        "Charging")
+            icon=""
+            ;;
+        "Discharging")
+            if [ "$capacity" -le 15 ]; then
+                icon=""
+            elif [ "$capacity" -le 35 ]; then
+                icon=""
+            elif [ "$capacity" -le 60 ]; then
+                icon=""
+            elif [ "$capacity" -le 85 ]; then
+                icon=""
+            else
+                icon=""
+            fi
+            ;;
+        "Not charging")
+            icon=""
+            ;;
+        *)
+            icon="?"
+            ;;
+    esac
+
+    output="$output$name $icon ${capacity}%"
+done
+
+printf "%s\n" "$output"
